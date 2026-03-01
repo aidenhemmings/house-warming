@@ -4,6 +4,15 @@ require("dotenv").config();
 
 async function seed() {
   try {
+    // ── Wipe all existing data (order matters for foreign keys) ──
+    console.log("[seed] Wiping existing data...");
+    await pool.query("DELETE FROM reservations");
+    await pool.query("DELETE FROM guests");
+    await pool.query("DELETE FROM items");
+    await pool.query("DELETE FROM sessions");
+    await pool.query("DELETE FROM admins");
+    console.log("[seed] All tables cleared.");
+
     // Create default admin
     const username = process.env.ADMIN_USERNAME || "admin";
     const password = process.env.ADMIN_PASSWORD || "admin123";
