@@ -1,4 +1,9 @@
-import { Component, OnInit, signal } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  signal,
+  CUSTOM_ELEMENTS_SCHEMA,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { MatCardModule } from "@angular/material/card";
@@ -18,16 +23,29 @@ import { ApiService, Session } from "../../core/services/api.service";
     MatIconModule,
     MatProgressSpinnerModule,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div class="home-page">
       <!-- Floating decorative elements -->
       <div class="decorations" aria-hidden="true">
-        <span class="deco deco-1">🏡</span>
-        <span class="deco deco-2">🌿</span>
-        <span class="deco deco-3">✨</span>
-        <span class="deco deco-4">🎉</span>
-        <span class="deco deco-5">🪴</span>
-        <span class="deco deco-6">🎊</span>
+        <span class="deco deco-1"
+          ><iconify-icon icon="tabler:home-heart"></iconify-icon
+        ></span>
+        <span class="deco deco-2"
+          ><iconify-icon icon="tabler:leaf"></iconify-icon
+        ></span>
+        <span class="deco deco-3"
+          ><iconify-icon icon="tabler:sparkles"></iconify-icon
+        ></span>
+        <span class="deco deco-4"
+          ><iconify-icon icon="tabler:confetti"></iconify-icon
+        ></span>
+        <span class="deco deco-5"
+          ><iconify-icon icon="tabler:plant-2"></iconify-icon
+        ></span>
+        <span class="deco deco-6"
+          ><iconify-icon icon="tabler:balloon"></iconify-icon
+        ></span>
       </div>
 
       <!-- Hero Section -->
@@ -40,7 +58,9 @@ import { ApiService, Session } from "../../core/services/api.service";
 
         <div class="hero-content">
           <div class="hero-badge">
-            <span class="badge-emoji">🏠</span>
+            <span class="badge-emoji"
+              ><iconify-icon icon="tabler:home"></iconify-icon
+            ></span>
             <span class="badge-text">You're Invited!</span>
           </div>
 
@@ -68,12 +88,16 @@ import { ApiService, Session } from "../../core/services/api.service";
             </div>
             <div class="hero-stat-divider"></div>
             <div class="hero-stat">
-              <span class="hero-stat-num">🎁</span>
+              <span class="hero-stat-num"
+                ><iconify-icon icon="tabler:gift"></iconify-icon
+              ></span>
               <span class="hero-stat-label">Gifts to Choose</span>
             </div>
             <div class="hero-stat-divider"></div>
             <div class="hero-stat">
-              <span class="hero-stat-num">❤️</span>
+              <span class="hero-stat-num"
+                ><iconify-icon icon="tabler:heart-filled"></iconify-icon
+              ></span>
               <span class="hero-stat-label">Lots of Love</span>
             </div>
           </div>
@@ -90,7 +114,9 @@ import { ApiService, Session } from "../../core/services/api.service";
             </div>
           } @else if (sessions().length === 0) {
             <div class="empty-state">
-              <div class="empty-illustration">🏗️</div>
+              <div class="empty-illustration">
+                <iconify-icon icon="tabler:crane"></iconify-icon>
+              </div>
               <h2>Still Setting Up!</h2>
               <p>
                 We're getting everything ready. Check back soon for our
@@ -115,7 +141,9 @@ import { ApiService, Session } from "../../core/services/api.service";
                   <div class="event-card-accent"></div>
                   <div class="event-card-body">
                     <div class="event-card-top">
-                      <div class="event-emoji">🎉</div>
+                      <div class="event-emoji">
+                        <iconify-icon icon="tabler:confetti"></iconify-icon>
+                      </div>
                       @if (session.event_date) {
                         <div class="event-date-badge">
                           <span class="date-month">{{
@@ -132,6 +160,7 @@ import { ApiService, Session } from "../../core/services/api.service";
 
                     @if (session.event_date) {
                       <p class="event-date-full">
+                        <iconify-icon icon="tabler:calendar"></iconify-icon>
                         {{ formatDate(session.event_date) }}
                       </p>
                     }
@@ -172,7 +201,9 @@ import { ApiService, Session } from "../../core/services/api.service";
           <div class="steps-grid">
             <div class="step-card">
               <div class="step-number">1</div>
-              <div class="step-emoji">👀</div>
+              <div class="step-emoji">
+                <iconify-icon icon="tabler:eye"></iconify-icon>
+              </div>
               <h3>Browse</h3>
               <p>Check out our curated wish list of items for the new home</p>
             </div>
@@ -181,7 +212,9 @@ import { ApiService, Session } from "../../core/services/api.service";
             </div>
             <div class="step-card">
               <div class="step-number">2</div>
-              <div class="step-emoji">🎁</div>
+              <div class="step-emoji">
+                <iconify-icon icon="tabler:gift"></iconify-icon>
+              </div>
               <h3>Reserve</h3>
               <p>Claim the items you'd like to gift — no duplicates!</p>
             </div>
@@ -190,7 +223,9 @@ import { ApiService, Session } from "../../core/services/api.service";
             </div>
             <div class="step-card">
               <div class="step-number">3</div>
-              <div class="step-emoji">🥳</div>
+              <div class="step-emoji">
+                <iconify-icon icon="tabler:mood-happy"></iconify-icon>
+              </div>
               <h3>Celebrate</h3>
               <p>Bring your gift to the party and let's have a great time!</p>
             </div>
@@ -201,7 +236,9 @@ import { ApiService, Session } from "../../core/services/api.service";
       <!-- Footer -->
       <footer class="footer">
         <div class="footer-content">
-          <div class="footer-emoji">🏡</div>
+          <div class="footer-emoji">
+            <iconify-icon icon="tabler:home-heart"></iconify-icon>
+          </div>
           <p class="footer-tagline">Made with love for our new beginning</p>
           <a routerLink="/admin/login" class="admin-link">Admin</a>
         </div>
@@ -216,6 +253,12 @@ import { ApiService, Session } from "../../core/services/api.service";
         flex-direction: column;
         overflow-x: hidden;
         position: relative;
+      }
+
+      /* ── Iconify base styling ── */
+      iconify-icon {
+        display: inline-flex;
+        vertical-align: middle;
       }
 
       /* ── Floating decorations ── */
@@ -631,9 +674,9 @@ import { ApiService, Session } from "../../core/services/api.service";
         align-items: center;
         gap: 6px;
 
-        &::before {
-          content: "📅";
-          font-size: 0.85rem;
+        iconify-icon {
+          font-size: 16px;
+          color: var(--primary);
         }
       }
 
@@ -869,7 +912,7 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.api.getSessions().subscribe({
       next: (sessions) => {
-        this.sessions.set(sessions);
+        this.sessions.set(sessions.filter((s) => s.is_active));
         this.loading.set(false);
       },
       error: () => {

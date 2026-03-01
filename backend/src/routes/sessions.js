@@ -47,21 +47,22 @@ router.get("/:id", async (req, res) => {
 // POST /api/sessions - Admin only
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { name, description, event_date, is_active } = req.body;
+    const { name, description, event_date, is_active, categories } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: "Session name is required" });
     }
 
     const result = await pool.query(
-      `INSERT INTO sessions (name, description, event_date, is_active)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO sessions (name, description, event_date, is_active, categories)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
       [
         name,
         description || null,
         event_date || null,
         is_active !== undefined ? is_active : true,
+        JSON.stringify(categories || []),
       ],
     );
 
@@ -78,7 +79,7 @@ router.post("/", authMiddleware, async (req, res) => {
 // PUT /api/sessions/:id - Admin only
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
-    const { name, description, event_date, is_active } = req.body;
+    const { name, description, event_date, is_active, categories } = req.body;
 
     const result = await pool.query(
       `UPDATE sessions
@@ -86,10 +87,11 @@ router.put("/:id", authMiddleware, async (req, res) => {
            description = COALESCE($2, description),
            event_date = COALESCE($3, event_date),
            is_active = COALESCE($4, is_active),
+           categories = COALESCE($5, categories),
            updated_at = NOW()
-       WHERE id = $5
+       WHERE id = $6
        RETURNING *`,
-      [name, description, event_date, is_active, req.params.id],
+      [name, description, event_date, is_active, categories ? JSON.stringify(categories) : null, req.params.id],
     );
 
     if (result.rows.length === 0) {

@@ -61,8 +61,15 @@ router.get("/:id", async (req, res) => {
 // POST /api/items - Admin only
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { session_id, name, description, category, quantity, image_url } =
-      req.body;
+    const {
+      session_id,
+      name,
+      description,
+      category,
+      quantity,
+      icon,
+      image_url,
+    } = req.body;
 
     if (!session_id || !name) {
       return res
@@ -71,8 +78,8 @@ router.post("/", authMiddleware, async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO items (session_id, name, description, category, quantity, image_url)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO items (session_id, name, description, category, quantity, icon, image_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
       [
         session_id,
@@ -80,6 +87,7 @@ router.post("/", authMiddleware, async (req, res) => {
         description || null,
         category || null,
         quantity || 1,
+        icon || null,
         image_url || null,
       ],
     );
@@ -101,7 +109,7 @@ router.post("/", authMiddleware, async (req, res) => {
 // PUT /api/items/:id - Admin only
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
-    const { name, description, category, quantity, image_url } = req.body;
+    const { name, description, category, quantity, icon, image_url } = req.body;
 
     const result = await pool.query(
       `UPDATE items
@@ -109,11 +117,20 @@ router.put("/:id", authMiddleware, async (req, res) => {
            description = COALESCE($2, description),
            category = COALESCE($3, category),
            quantity = COALESCE($4, quantity),
-           image_url = COALESCE($5, image_url),
+           icon = $5,
+           image_url = COALESCE($6, image_url),
            updated_at = NOW()
-       WHERE id = $6
+       WHERE id = $7
        RETURNING *`,
-      [name, description, category, quantity, image_url, req.params.id],
+      [
+        name,
+        description,
+        category,
+        quantity,
+        icon || null,
+        image_url,
+        req.params.id,
+      ],
     );
 
     if (result.rows.length === 0) {

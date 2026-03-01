@@ -1,4 +1,4 @@
-import { Component, signal } from "@angular/core";
+import { Component, signal, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Router, RouterLink } from "@angular/router";
 import {
@@ -32,6 +32,7 @@ import { AuthService } from "../../../core/services/auth.service";
     MatSnackBarModule,
     MatProgressSpinnerModule,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div class="login-page">
       <div class="login-bg-shapes" aria-hidden="true">
@@ -48,7 +49,9 @@ import { AuthService } from "../../../core/services/auth.service";
 
         <div class="login-card">
           <div class="login-header">
-            <div class="login-icon">🔐</div>
+            <div class="login-icon">
+              <iconify-icon icon="tabler:lock"></iconify-icon>
+            </div>
             <h1>Admin Portal</h1>
             <p>Manage your housewarming registry</p>
           </div>

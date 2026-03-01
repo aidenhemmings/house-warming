@@ -1,4 +1,10 @@
-import { Component, OnInit, OnDestroy, signal } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  signal,
+  CUSTOM_ELEMENTS_SCHEMA,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { MatCardModule } from "@angular/material/card";
@@ -28,6 +34,7 @@ import { SocketService } from "../../../core/services/socket.service";
     MatExpansionModule,
     MatTooltipModule,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div class="guests-page">
       <div class="page-hero">
@@ -35,7 +42,10 @@ import { SocketService } from "../../../core/services/socket.service";
           <a routerLink="/admin/sessions" class="back-link">
             <mat-icon>arrow_back</mat-icon> Sessions
           </a>
-          <h1>👥 Guests — {{ session()?.name }}</h1>
+          <h1>
+            <iconify-icon icon="tabler:users"></iconify-icon> Guests —
+            {{ session()?.name }}
+          </h1>
           <p>View registered guests and their reserved items</p>
         </div>
       </div>
@@ -46,7 +56,9 @@ import { SocketService } from "../../../core/services/socket.service";
         </div>
       } @else if (guests().length === 0) {
         <div class="empty-card">
-          <div class="empty-icon">🙋</div>
+          <div class="empty-icon">
+            <iconify-icon icon="tabler:user-plus"></iconify-icon>
+          </div>
           <h3>No Guests Yet</h3>
           <p>
             No one has registered for this session yet. Share the registry link!

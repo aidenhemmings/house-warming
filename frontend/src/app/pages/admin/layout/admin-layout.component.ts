@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterOutlet, RouterLink, RouterLinkActive } from "@angular/router";
 import { MatToolbarModule } from "@angular/material/toolbar";
@@ -22,6 +22,7 @@ import { AuthService } from "../../../core/services/auth.service";
     MatSidenavModule,
     MatListModule,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div class="admin-layout">
       <header class="admin-toolbar">
@@ -29,7 +30,8 @@ import { AuthService } from "../../../core/services/auth.service";
           <mat-icon>{{ sidenavOpen ? "menu_open" : "menu" }}</mat-icon>
         </button>
         <span class="brand"
-          >🏠 <span class="brand-text">Registry Admin</span></span
+          ><iconify-icon icon="tabler:home"></iconify-icon>
+          <span class="brand-text">Registry Admin</span></span
         >
         <span class="spacer"></span>
         <a routerLink="/" class="toolbar-btn" title="View Public Site">

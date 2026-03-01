@@ -3,12 +3,18 @@ import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { environment } from "../../../environments/environment";
 
+export interface CategoryDef {
+  name: string;
+  icon?: string;
+}
+
 export interface Session {
   id: number;
   name: string;
   description: string;
   event_date: string;
   is_active: boolean;
+  categories: CategoryDef[];
   created_at: string;
   updated_at: string;
 }
@@ -20,6 +26,7 @@ export interface Item {
   description: string;
   category: string;
   quantity: number;
+  icon: string;
   image_url: string;
   reserved_quantity: number;
   available_quantity: number;
@@ -48,6 +55,17 @@ export interface SessionStats {
   total_quantity: string;
   reserved_quantity: string;
   total_guests: string;
+}
+
+export interface GuestLookup {
+  guest: { first_name: string; last_name: string; email: string } | null;
+  reservations: {
+    reservation_id: number;
+    item_id: number;
+    item_name: string;
+    item_category: string;
+    quantity: number;
+  }[];
 }
 
 export interface Reservation {
@@ -144,6 +162,21 @@ export class ApiService {
 
   registerGuest(registration: GuestRegistration): Observable<any> {
     return this.http.post(`${this.baseUrl}/guests`, registration);
+  }
+
+  lookupGuest(email: string, sessionId: number): Observable<GuestLookup> {
+    return this.http.get<GuestLookup>(`${this.baseUrl}/guests/lookup`, {
+      params: { email, session_id: sessionId.toString() },
+    });
+  }
+
+  cancelReservation(reservationId: number, email: string): Observable<any> {
+    return this.http.delete(
+      `${this.baseUrl}/guests/reservations/${reservationId}`,
+      {
+        params: { email },
+      },
+    );
   }
 
   deleteGuest(id: number): Observable<any> {

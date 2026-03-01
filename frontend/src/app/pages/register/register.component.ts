@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, signal, computed } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  signal,
+  computed,
+  CUSTOM_ELEMENTS_SCHEMA,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import {
@@ -12,7 +20,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import { MatStepperModule } from "@angular/material/stepper";
+import { MatStepper, MatStepperModule } from "@angular/material/stepper";
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
@@ -21,6 +29,7 @@ import { MatSelectModule } from "@angular/material/select";
 import { Subscription } from "rxjs";
 import { ApiService, Item, Session } from "../../core/services/api.service";
 import { SocketService } from "../../core/services/socket.service";
+import { GuestSessionService } from "../../core/services/guest-session.service";
 
 interface SelectedItem {
   item: Item;
@@ -46,6 +55,7 @@ interface SelectedItem {
     MatToolbarModule,
     MatSelectModule,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <!-- Top nav -->
     <nav class="top-nav">
@@ -62,14 +72,26 @@ interface SelectedItem {
         <!-- ✅ Success State -->
         <div class="success-container fade-in">
           <div class="confetti-bg" aria-hidden="true">
-            <span class="conf conf-1">🎊</span>
-            <span class="conf conf-2">✨</span>
-            <span class="conf conf-3">🎉</span>
-            <span class="conf conf-4">💝</span>
-            <span class="conf conf-5">🌟</span>
+            <span class="conf conf-1"
+              ><iconify-icon icon="tabler:confetti"></iconify-icon
+            ></span>
+            <span class="conf conf-2"
+              ><iconify-icon icon="tabler:sparkles"></iconify-icon
+            ></span>
+            <span class="conf conf-3"
+              ><iconify-icon icon="tabler:balloon"></iconify-icon
+            ></span>
+            <span class="conf conf-4"
+              ><iconify-icon icon="tabler:heart-filled"></iconify-icon
+            ></span>
+            <span class="conf conf-5"
+              ><iconify-icon icon="tabler:star-filled"></iconify-icon
+            ></span>
           </div>
           <div class="success-card">
-            <div class="success-emoji">🎉</div>
+            <div class="success-emoji">
+              <iconify-icon icon="tabler:party-popper"></iconify-icon>
+            </div>
             <h2>You're All Set!</h2>
             <p class="success-msg">
               Thank you for reserving
@@ -91,7 +113,11 @@ interface SelectedItem {
               }
             </div>
             <div class="success-actions">
-              <a class="btn-solid" [routerLink]="['/registry', sessionId]">
+              <button class="btn-solid" (click)="reserveMore()">
+                <mat-icon>add_shopping_cart</mat-icon>
+                Reserve More Gifts
+              </button>
+              <a class="btn-outline" [routerLink]="['/registry', sessionId]">
                 <mat-icon>visibility</mat-icon>
                 View Registry
               </a>
@@ -106,7 +132,9 @@ interface SelectedItem {
         <!-- Header -->
         <header class="page-hero">
           <div class="container">
-            <span class="hero-emoji">🎁</span>
+            <span class="hero-emoji"
+              ><iconify-icon icon="tabler:gift"></iconify-icon
+            ></span>
             <h1>Reserve Your Gifts</h1>
             <p>
               Three quick steps and you're done — let us know what you're
@@ -120,8 +148,27 @@ interface SelectedItem {
             <!-- Step 1: Personal Info -->
             <mat-step [stepControl]="personalForm" label="About You">
               <div class="step-content">
+                @if (isReturningGuest()) {
+                  <div class="welcome-back-banner">
+                    <div class="wb-icon">
+                      <iconify-icon icon="tabler:user-check"></iconify-icon>
+                    </div>
+                    <div class="wb-text">
+                      <strong
+                        >Welcome back,
+                        {{ personalForm.get("firstName")?.value }}!</strong
+                      >
+                      <span>Your info is saved from last time.</span>
+                    </div>
+                    <button class="wb-change" (click)="clearSavedGuest()">
+                      Not you?
+                    </button>
+                  </div>
+                }
                 <div class="step-header">
-                  <span class="step-emoji">👋</span>
+                  <span class="step-emoji"
+                    ><iconify-icon icon="tabler:hand-stop"></iconify-icon
+                  ></span>
                   <div>
                     <h2>Tell us about yourself</h2>
                     <p>We'd love to know who's bringing the gifts!</p>
@@ -176,7 +223,9 @@ interface SelectedItem {
             <mat-step label="Choose Gifts">
               <div class="step-content">
                 <div class="step-header">
-                  <span class="step-emoji">🛍️</span>
+                  <span class="step-emoji"
+                    ><iconify-icon icon="tabler:shopping-bag"></iconify-icon
+                  ></span>
                   <div>
                     <h2>Pick your gifts</h2>
                     <p>Select what you'd like to bring to the celebration</p>
@@ -197,14 +246,16 @@ interface SelectedItem {
                         class="cat-chip"
                         [class.active]="selectedCategory() === ''"
                         (click)="selectCategory('')">
-                        ✨ All
+                        <iconify-icon icon="tabler:sparkles"></iconify-icon> All
                       </button>
                       @for (cat of categories(); track cat) {
                         <button
                           class="cat-chip"
                           [class.active]="selectedCategory() === cat"
                           (click)="selectCategory(cat)">
-                          {{ getCategoryEmoji(cat) }} {{ cat }}
+                          <iconify-icon
+                            [icon]="getCategoryEmoji(cat)"></iconify-icon>
+                          {{ cat }}
                         </button>
                       }
                     </div>
@@ -246,9 +297,12 @@ interface SelectedItem {
 
                         <div class="gift-card-inner">
                           <div class="gift-top-row">
-                            <span class="gift-emoji">{{
-                              getItemEmoji(item.category)
-                            }}</span>
+                            <span class="gift-emoji"
+                              ><iconify-icon
+                                [icon]="
+                                  getItemEmoji(item.category)
+                                "></iconify-icon
+                            ></span>
                             @if (item.category) {
                               <span class="gift-category">{{
                                 item.category
@@ -319,7 +373,8 @@ interface SelectedItem {
                   @if (selectedItems().length > 0) {
                     <div class="selection-summary">
                       <span
-                        >🎁 {{ selectedItems().length }} item{{
+                        ><iconify-icon icon="tabler:gift"></iconify-icon>
+                        {{ selectedItems().length }} item{{
                           selectedItems().length !== 1 ? "s" : ""
                         }}
                         selected</span
@@ -350,7 +405,10 @@ interface SelectedItem {
             <mat-step label="Confirm">
               <div class="step-content">
                 <div class="step-header">
-                  <span class="step-emoji">✅</span>
+                  <span class="step-emoji"
+                    ><iconify-icon
+                      icon="tabler:circle-check-filled"></iconify-icon
+                  ></span>
                   <div>
                     <h2>Review & confirm</h2>
                     <p>Make sure everything looks good before submitting</p>
@@ -427,6 +485,11 @@ interface SelectedItem {
   styles: [
     `
       /* ── Top Nav ── */
+      iconify-icon {
+        display: inline-flex;
+        vertical-align: middle;
+      }
+
       .top-nav {
         position: sticky;
         top: 0;
@@ -461,14 +524,19 @@ interface SelectedItem {
       }
 
       .nav-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
         font-family: var(--font-display);
         font-weight: 600;
         color: var(--navy);
         font-size: 1rem;
+        pointer-events: none;
+        white-space: nowrap;
       }
 
       .nav-spacer {
-        width: 120px;
+        width: 0;
       }
 
       /* ── Page Hero ── */
@@ -517,6 +585,61 @@ interface SelectedItem {
 
       .step-content {
         padding: 28px 0;
+      }
+
+      /* ── Welcome Back Banner ── */
+      .welcome-back-banner {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 20px;
+        background: var(--secondary-light);
+        border: 1px solid rgba(129, 178, 154, 0.3);
+        border-radius: var(--radius);
+        margin-bottom: 24px;
+        animation: fadeInUp 0.4s ease-out;
+      }
+
+      .wb-icon {
+        font-size: 1.5rem;
+        color: var(--secondary-dark);
+        flex-shrink: 0;
+      }
+
+      .wb-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+
+        strong {
+          color: var(--navy);
+          font-size: 0.95rem;
+        }
+
+        span {
+          color: var(--text-secondary);
+          font-size: 0.82rem;
+        }
+      }
+
+      .wb-change {
+        background: none;
+        border: none;
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.82rem;
+        cursor: pointer;
+        white-space: nowrap;
+        padding: 4px 8px;
+        border-radius: var(--radius-sm);
+        transition: all var(--transition);
+
+        &:hover {
+          background: var(--primary-light);
+          color: var(--primary-dark);
+        }
       }
 
       .step-header {
@@ -858,10 +981,15 @@ interface SelectedItem {
         font-size: 0.85rem;
         font-weight: 500;
         color: var(--text-secondary);
+        line-height: 1;
       }
 
       .qty-field {
         width: 72px;
+
+        ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+          display: none;
+        }
 
         ::ng-deep .mat-mdc-form-field-infix {
           min-height: 40px;
@@ -1209,6 +1337,8 @@ interface SelectedItem {
   ],
 })
 export class RegisterComponent implements OnInit, OnDestroy {
+  @ViewChild("stepper") stepper!: MatStepper;
+
   sessionId!: number;
   session = signal<Session | null>(null);
   items = signal<Item[]>([]);
@@ -1217,24 +1347,25 @@ export class RegisterComponent implements OnInit, OnDestroy {
   submitting = signal(false);
   submittedName = signal("");
   selectedItems = signal<SelectedItem[]>([]);
+  isReturningGuest = signal(false);
 
   personalForm: FormGroup;
   private subscriptions: Subscription[] = [];
   selectedCategory = signal("");
 
   private categoryEmojis: Record<string, string> = {
-    Kitchen: "🍳",
-    "Living Room": "🛋️",
-    Bedroom: "🛏️",
-    Bathroom: "🛁",
-    Garden: "🌱",
-    Outdoor: "☀️",
-    Decor: "🖼️",
-    Electronics: "📱",
-    Cleaning: "🧹",
-    Storage: "📦",
-    Dining: "🍽️",
-    Entertainment: "🎮",
+    Kitchen: "tabler:tools-kitchen-2",
+    "Living Room": "tabler:armchair",
+    Bedroom: "tabler:bed",
+    Bathroom: "tabler:bath",
+    Garden: "tabler:plant",
+    Outdoor: "tabler:sun",
+    Decor: "tabler:photo",
+    Electronics: "tabler:device-mobile",
+    Cleaning: "tabler:brush",
+    Storage: "tabler:box",
+    Dining: "tabler:tools-kitchen",
+    Entertainment: "tabler:device-gamepad-2",
   };
 
   categories = computed(() => {
@@ -1262,12 +1393,24 @@ export class RegisterComponent implements OnInit, OnDestroy {
     private api: ApiService,
     private socketService: SocketService,
     private snackBar: MatSnackBar,
+    private guestSession: GuestSessionService,
   ) {
     this.personalForm = this.fb.group({
       firstName: ["", [Validators.required, Validators.minLength(2)]],
       lastName: ["", [Validators.required, Validators.minLength(2)]],
       email: ["", [Validators.required, Validators.email]],
     });
+
+    // Pre-fill from saved guest info
+    const saved = this.guestSession.guest();
+    if (saved) {
+      this.personalForm.patchValue({
+        firstName: saved.firstName,
+        lastName: saved.lastName,
+        email: saved.email,
+      });
+      this.isReturningGuest.set(true);
+    }
   }
 
   ngOnInit(): void {
@@ -1291,6 +1434,13 @@ export class RegisterComponent implements OnInit, OnDestroy {
           if (item && item.available_quantity > 0) {
             this.selectedItems.set([{ item, quantity: 1 }]);
           }
+        }
+
+        // Auto-advance to Step 2 for returning guests
+        if (this.isReturningGuest() && this.personalForm.valid) {
+          setTimeout(() => {
+            this.stepper?.next();
+          });
         }
       },
       error: () => this.loading.set(false),
@@ -1326,12 +1476,12 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   getCategoryEmoji(category: string): string {
-    return this.categoryEmojis[category] || "📌";
+    return this.categoryEmojis[category] || "tabler:pin";
   }
 
   getItemEmoji(category: string | undefined): string {
-    if (!category) return "🎁";
-    return this.categoryEmojis[category] || "🎁";
+    if (!category) return "tabler:gift";
+    return this.categoryEmojis[category] || "tabler:gift";
   }
 
   isSelected(item: Item): boolean {
@@ -1383,6 +1533,13 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
     this.api.registerGuest(registration).subscribe({
       next: () => {
+        // Save guest info for next time
+        this.guestSession.save({
+          firstName: registration.first_name,
+          lastName: registration.last_name,
+          email: registration.email,
+        });
+
         this.submittedName.set(
           `${registration.first_name} ${registration.last_name}`,
         );
@@ -1399,5 +1556,45 @@ export class RegisterComponent implements OnInit, OnDestroy {
         });
       },
     });
+  }
+
+  /** Reset to gift selection for another reservation (same guest) */
+  reserveMore(): void {
+    this.submitted.set(false);
+    this.selectedItems.set([]);
+    this.selectedCategory.set("");
+    this.isReturningGuest.set(true);
+
+    // Re-fetch items to get updated availability
+    this.loading.set(true);
+    this.api.getItems(this.sessionId).subscribe({
+      next: (items) => {
+        this.items.set(items);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+
+    // Jump stepper to Step 2 (gift selection)
+    setTimeout(() => {
+      this.stepper?.reset();
+      // Patch form again since reset clears it
+      const saved = this.guestSession.guest();
+      if (saved) {
+        this.personalForm.patchValue({
+          firstName: saved.firstName,
+          lastName: saved.lastName,
+          email: saved.email,
+        });
+      }
+      setTimeout(() => this.stepper?.next());
+    });
+  }
+
+  /** Let user re-enter their info */
+  clearSavedGuest(): void {
+    this.guestSession.clear();
+    this.isReturningGuest.set(false);
+    this.personalForm.reset();
   }
 }

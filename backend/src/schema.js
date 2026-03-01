@@ -14,6 +14,7 @@ const schema = `
     description TEXT,
     event_date DATE,
     is_active BOOLEAN DEFAULT true,
+    categories JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
   );
@@ -25,6 +26,7 @@ const schema = `
     description TEXT,
     category VARCHAR(100),
     quantity INTEGER DEFAULT 1,
+    icon VARCHAR(100),
     image_url TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
@@ -52,6 +54,11 @@ const schema = `
   CREATE INDEX IF NOT EXISTS idx_guests_session_id ON guests(session_id);
   CREATE INDEX IF NOT EXISTS idx_reservations_guest_id ON reservations(guest_id);
   CREATE INDEX IF NOT EXISTS idx_reservations_item_id ON reservations(item_id);
+
+  DO $$ BEGIN
+    ALTER TABLE sessions ADD COLUMN categories JSONB DEFAULT '[]'::jsonb;
+  EXCEPTION WHEN duplicate_column THEN NULL;
+  END $$;
 `;
 
 async function initDatabase() {

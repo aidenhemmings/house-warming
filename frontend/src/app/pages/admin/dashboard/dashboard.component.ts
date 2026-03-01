@@ -1,4 +1,9 @@
-import { Component, OnInit, signal } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  signal,
+  CUSTOM_ELEMENTS_SCHEMA,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { MatCardModule } from "@angular/material/card";
@@ -27,11 +32,14 @@ interface SessionWithStats extends Session {
     MatIconModule,
     MatProgressSpinnerModule,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div class="dashboard">
       <div class="page-hero">
         <div class="hero-text">
-          <h1>📊 Dashboard</h1>
+          <h1>
+            <iconify-icon icon="tabler:chart-bar"></iconify-icon> Dashboard
+          </h1>
           <p>Overview of your housewarming registry sessions</p>
         </div>
         <div class="quick-actions">
@@ -52,7 +60,9 @@ interface SessionWithStats extends Session {
         </div>
       } @else if (sessions().length === 0) {
         <div class="empty-card">
-          <div class="empty-icon">🗓️</div>
+          <div class="empty-icon">
+            <iconify-icon icon="tabler:calendar"></iconify-icon>
+          </div>
           <h3>No Sessions Yet</h3>
           <p>Create your first housewarming session to get started</p>
           <a
