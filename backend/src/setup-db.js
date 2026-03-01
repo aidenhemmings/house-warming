@@ -10,13 +10,28 @@ require("dotenv").config();
  * 5. Seeds the admin user (idempotent)
  */
 async function setupDatabase() {
-  const dbName = process.env.DB_NAME || "housewarming";
-  const connectionConfig = {
-    host: process.env.DB_HOST || "localhost",
-    port: parseInt(process.env.DB_PORT) || 5432,
-    user: process.env.DB_USER || "postgres",
-    password: process.env.DB_PASSWORD || "postgres",
-  };
+  // Parse DATABASE_URL if provided, otherwise use individual vars
+  let connectionConfig;
+  let dbName;
+
+  if (process.env.DATABASE_URL) {
+    const url = new URL(process.env.DATABASE_URL);
+    dbName = url.pathname.slice(1) || "postgres";
+    connectionConfig = {
+      host: url.hostname,
+      port: parseInt(url.port) || 5432,
+      user: url.username,
+      password: url.password,
+    };
+  } else {
+    dbName = process.env.DB_NAME || "housewarming";
+    connectionConfig = {
+      host: process.env.DB_HOST || "localhost",
+      port: parseInt(process.env.DB_PORT) || 5432,
+      user: process.env.DB_USER || "postgres",
+      password: process.env.DB_PASSWORD || "postgres",
+    };
+  }
 
   // --- Step 1: Create the database if it doesn't exist ---
   console.log(`[setup-db] Checking if database "${dbName}" exists...`);
