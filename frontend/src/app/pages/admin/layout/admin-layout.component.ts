@@ -29,10 +29,10 @@ import { AuthService } from "../../../core/services/auth.service";
         <button class="menu-toggle" (click)="sidenavOpen = !sidenavOpen">
           <mat-icon>{{ sidenavOpen ? "menu_open" : "menu" }}</mat-icon>
         </button>
-        <span class="brand"
-          ><iconify-icon icon="tabler:home"></iconify-icon>
-          <span class="brand-text">Registry Admin</span></span
-        >
+        <span class="brand">
+          <img src="assets/logo-small.png" alt="Logo" class="brand-logo" />
+          <span class="brand-text">Registry Admin</span>
+        </span>
         <span class="spacer"></span>
         <a routerLink="/" class="toolbar-btn" title="View Public Site">
           <mat-icon>open_in_new</mat-icon>
@@ -45,20 +45,25 @@ import { AuthService } from "../../../core/services/auth.service";
         </button>
       </header>
 
-      <div class="admin-body" [class.sidenav-open]="sidenavOpen">
+      <div class="admin-body">
+        @if (sidenavOpen) {
+          <div class="sidenav-backdrop" (click)="sidenavOpen = false"></div>
+        }
         <aside class="admin-sidenav" [class.open]="sidenavOpen">
           <nav>
             <a
               routerLink="/admin/dashboard"
               routerLinkActive="active-link"
-              class="nav-item">
+              class="nav-item"
+              (click)="closeSidenavOnMobile()">
               <mat-icon>dashboard</mat-icon>
               <span>Dashboard</span>
             </a>
             <a
               routerLink="/admin/sessions"
               routerLinkActive="active-link"
-              class="nav-item">
+              class="nav-item"
+              (click)="closeSidenavOnMobile()">
               <mat-icon>event</mat-icon>
               <span>Sessions</span>
             </a>
@@ -117,7 +122,14 @@ import { AuthService } from "../../../core/services/auth.service";
         font-size: 1.3rem;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
+      }
+
+      .brand-logo {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        border-radius: 6px;
       }
 
       .brand-text {
@@ -159,6 +171,11 @@ import { AuthService } from "../../../core/services/auth.service";
         display: flex;
         flex: 1;
         overflow: hidden;
+        position: relative;
+      }
+
+      .sidenav-backdrop {
+        display: none;
       }
 
       /* ─── Sidenav ─── */
@@ -224,9 +241,35 @@ import { AuthService } from "../../../core/services/auth.service";
       }
 
       @media (max-width: 768px) {
-        .admin-sidenav.open {
-          width: 180px;
+        .sidenav-backdrop {
+          display: block;
+          position: fixed;
+          inset: 0;
+          top: 60px;
+          background: rgba(61, 64, 91, 0.4);
+          backdrop-filter: blur(2px);
+          z-index: 149;
+          animation: fadeIn 0.2s ease;
         }
+
+        .admin-sidenav {
+          position: fixed;
+          top: 60px;
+          left: 0;
+          bottom: 0;
+          z-index: 150;
+          width: 0;
+          box-shadow: none;
+          transition:
+            width 0.25s ease,
+            box-shadow 0.25s ease;
+
+          &.open {
+            width: 240px;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+          }
+        }
+
         .admin-content {
           padding: 16px;
         }
@@ -234,13 +277,28 @@ import { AuthService } from "../../../core/services/auth.service";
           display: none;
         }
       }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
     `,
   ],
 })
 export class AdminLayoutComponent {
-  sidenavOpen = true;
+  sidenavOpen = window.innerWidth > 768;
 
   constructor(private authService: AuthService) {}
+
+  closeSidenavOnMobile(): void {
+    if (window.innerWidth <= 768) {
+      this.sidenavOpen = false;
+    }
+  }
 
   logout(): void {
     this.authService.logout();

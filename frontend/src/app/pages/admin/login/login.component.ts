@@ -49,9 +49,10 @@ import { AuthService } from "../../../core/services/auth.service";
 
         <div class="login-card">
           <div class="login-header">
-            <div class="login-icon">
-              <iconify-icon icon="tabler:lock"></iconify-icon>
-            </div>
+            <img
+              src="assets/logo-large.png"
+              alt="House Warming"
+              class="login-logo" />
             <h1>Admin Portal</h1>
             <p>Manage your housewarming registry</p>
           </div>
@@ -192,9 +193,11 @@ import { AuthService } from "../../../core/services/auth.service";
         text-align: center;
         margin-bottom: 32px;
 
-        .login-icon {
-          font-size: 3rem;
-          margin-bottom: 12px;
+        .login-logo {
+          width: 100px;
+          height: auto;
+          margin-bottom: 16px;
+          filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
         }
 
         h1 {

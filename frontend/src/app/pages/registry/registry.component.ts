@@ -87,9 +87,7 @@ import { GuestSessionService } from "../../core/services/guest-session.service";
         <!-- Page Hero -->
         <header class="registry-hero">
           <div class="container">
-            <span class="hero-emoji"
-              ><iconify-icon icon="tabler:gift"></iconify-icon
-            ></span>
+            <img src="assets/logo-small.png" alt="Logo" class="registry-logo" />
             <h1>Gift Registry</h1>
             <p class="hero-desc">
               Here's what we'd love for our new home. Pick something that speaks
@@ -480,6 +478,14 @@ import { GuestSessionService } from "../../core/services/guest-session.service";
           var(--surface-warm) 0%,
           var(--background) 100%
         );
+      }
+
+      .registry-logo {
+        width: 72px;
+        height: auto;
+        margin-bottom: 12px;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+        animation: float 3s ease-in-out infinite;
       }
 
       .hero-emoji {

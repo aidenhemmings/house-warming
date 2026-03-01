@@ -280,7 +280,7 @@ interface SessionWithStats extends Session {
       /* ─── Session Grid ─── */
       .sessions-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
         gap: 20px;
       }
 
@@ -338,34 +338,34 @@ interface SessionWithStats extends Session {
 
       /* ─── Stats ─── */
       .stats-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
         margin-bottom: 16px;
       }
 
       .mini-stat {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 10px 8px;
+        gap: 6px;
+        padding: 8px 12px;
         border-radius: 12px;
         background: #f9f9f7;
       }
 
       .stat-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
 
         mat-icon {
-          font-size: 18px;
-          width: 18px;
-          height: 18px;
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
           color: white;
         }
       }
@@ -388,14 +388,14 @@ interface SessionWithStats extends Session {
 
       .stat-val {
         display: block;
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         line-height: 1.2;
         color: var(--text-primary);
       }
 
       .stat-lbl {
-        font-size: 0.65rem;
+        font-size: 0.62rem;
         color: var(--text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.04em;
@@ -444,9 +444,6 @@ interface SessionWithStats extends Session {
       @media (max-width: 768px) {
         .sessions-grid {
           grid-template-columns: 1fr;
-        }
-        .stats-row {
-          grid-template-columns: repeat(2, 1fr);
         }
         .page-hero {
           flex-direction: column;

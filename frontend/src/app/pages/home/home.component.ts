@@ -58,9 +58,7 @@ import { ApiService, Session } from "../../core/services/api.service";
 
         <div class="hero-content">
           <div class="hero-badge">
-            <span class="badge-emoji"
-              ><iconify-icon icon="tabler:home"></iconify-icon
-            ></span>
+            <img src="assets/logo-small.png" alt="Logo" class="badge-logo" />
             <span class="badge-text">You're Invited!</span>
           </div>
 
@@ -337,7 +335,7 @@ import { ApiService, Session } from "../../core/services/api.service";
       .shape {
         position: absolute;
         border-radius: 50%;
-        opacity: 0.08;
+        opacity: 0.04;
         background: white;
       }
       .shape-1 {
@@ -368,6 +366,21 @@ import { ApiService, Session } from "../../core/services/api.service";
         z-index: 1;
         max-width: 720px;
         margin: 0 auto;
+      }
+
+      .hero-logo {
+        width: 140px;
+        height: auto;
+        margin-bottom: 24px;
+        filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.25));
+        animation: scale-in 0.5s ease-out;
+      }
+
+      .badge-logo {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        border-radius: 6px;
       }
 
       .hero-badge {
@@ -912,7 +925,18 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.api.getSessions().subscribe({
       next: (sessions) => {
-        this.sessions.set(sessions.filter((s) => s.is_active));
+        this.sessions.set(
+          sessions
+            .filter((s) => s.is_active)
+            .sort((a, b) => {
+              if (!a.event_date) return 1;
+              if (!b.event_date) return -1;
+              return (
+                new Date(a.event_date).getTime() -
+                new Date(b.event_date).getTime()
+              );
+            }),
+        );
         this.loading.set(false);
       },
       error: () => {
