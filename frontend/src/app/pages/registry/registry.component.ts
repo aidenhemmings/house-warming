@@ -7,7 +7,7 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import {
   FormBuilder,
   FormGroup,
@@ -299,7 +299,7 @@ import { GuestSessionService } from "../../core/services/guest-session.service";
                           } @else {
                             <button
                               class="btn-reserve"
-                              (click)="openQuickReserve(item)">
+                              (click)="goToRegisterWithItem(item)">
                               <mat-icon>add_shopping_cart</mat-icon>
                               Reserve This
                             </button>
@@ -1291,6 +1291,7 @@ export class RegistryComponent implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private fb: FormBuilder,
     private api: ApiService,
     private socketService: SocketService,
@@ -1384,6 +1385,10 @@ export class RegistryComponent implements OnInit, OnDestroy {
           res.filter((r) => r.reservation_id !== reservationId),
         );
         this.cancellingId.set(null);
+        // Refresh items immediately so availability updates without waiting for socket
+        this.api
+          .getItems(this.sessionId)
+          .subscribe((items) => this.items.set(items));
       },
       error: () => {
         this.cancellingId.set(null);
@@ -1450,6 +1455,11 @@ export class RegistryComponent implements OnInit, OnDestroy {
           this.snackBar.open(`Reserved ${qty} × ${item.name}`, "OK", {
             duration: 3000,
           });
+          // Refresh items & reservations immediately so UI updates without waiting for socket
+          this.api
+            .getItems(this.sessionId)
+            .subscribe((items) => this.items.set(items));
+          this.loadMyReservations();
         },
         error: (err) => {
           this.reservingItemId.set(null);
@@ -1460,6 +1470,14 @@ export class RegistryComponent implements OnInit, OnDestroy {
           );
         },
       });
+  }
+
+  // ── Navigate to register stepper with item pre-selected ──
+
+  goToRegisterWithItem(item: Item): void {
+    this.router.navigate(["/register", this.sessionId], {
+      queryParams: { item: item.id },
+    });
   }
 
   // ── Quick reserve modal (new guests) ──
@@ -1500,6 +1518,11 @@ export class RegistryComponent implements OnInit, OnDestroy {
             "OK",
             { duration: 3000 },
           );
+          // Refresh items & reservations immediately so UI updates without waiting for socket
+          this.api
+            .getItems(this.sessionId)
+            .subscribe((items) => this.items.set(items));
+          this.loadMyReservations();
         },
         error: (err) => {
           this.reservingItemId.set(null);

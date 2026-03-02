@@ -1450,13 +1450,15 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.socketService.on<Item[]>("items-updated").subscribe((items) => {
         this.items.set(items);
-        // Update selected items availability
-        this.selectedItems.update((selected) =>
-          selected.filter((s) => {
-            const updated = items.find((i) => i.id === s.item.id);
-            return updated && updated.available_quantity > 0;
-          }),
-        );
+        // Update selected items availability — skip during/after submit so the success screen keeps all items
+        if (!this.submitted() && !this.submitting()) {
+          this.selectedItems.update((selected) =>
+            selected.filter((s) => {
+              const updated = items.find((i) => i.id === s.item.id);
+              return updated && updated.available_quantity > 0;
+            }),
+          );
+        }
       }),
     );
   }
