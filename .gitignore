@@ -3,3 +3,6 @@ dist/
 .angular/
 .env
 *.log
+
+# Production environment (contains deployment URLs)
+frontend/src/environments/environment.prod.ts
