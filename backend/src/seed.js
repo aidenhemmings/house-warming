@@ -112,7 +112,7 @@ async function seed() {
         "Cash or Gift Card",
         "Cash or gift cards — PEP Home or Mr Price Home would be greatly appreciated",
         "Gift Cards",
-        1,
+        null,
       ],
     ];
 

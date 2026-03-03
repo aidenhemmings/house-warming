@@ -210,10 +210,16 @@ import { GuestSessionService } from "../../core/services/guest-session.service";
                 @for (item of filteredItems(); track item.id; let i = $index) {
                   <div
                     class="item-card fade-in"
-                    [class.fully-reserved]="item.available_quantity <= 0"
+                    [class.fully-reserved]="
+                      item.available_quantity !== null &&
+                      item.available_quantity <= 0
+                    "
                     [style.animation-delay]="i * 0.06 + 's'">
                     <!-- Availability ribbon -->
-                    @if (item.available_quantity <= 0) {
+                    @if (
+                      item.available_quantity !== null &&
+                      item.available_quantity <= 0
+                    ) {
                       <div class="ribbon">
                         <span>Claimed!</span>
                       </div>
@@ -239,34 +245,63 @@ import { GuestSessionService } from "../../core/services/guest-session.service";
                       }
 
                       <!-- Progress visualization -->
-                      <div class="progress-wrap">
-                        <div class="progress-track">
-                          <div
-                            class="progress-fill"
-                            [class.complete]="item.available_quantity <= 0"
-                            [style.width.%]="getProgressValue(item)"></div>
-                        </div>
-                        <div class="progress-info">
-                          <span class="progress-claimed"
-                            >{{ item.reserved_quantity }}/{{
-                              item.quantity
-                            }}
-                            claimed</span
-                          >
-                          @if (item.available_quantity > 0) {
-                            <span class="progress-left"
-                              >{{ item.available_quantity }} left</span
+                      @if (item.quantity !== null) {
+                        <div class="progress-wrap">
+                          <div class="progress-track">
+                            <div
+                              class="progress-fill"
+                              [class.complete]="
+                                item.available_quantity !== null &&
+                                item.available_quantity <= 0
+                              "
+                              [style.width.%]="getProgressValue(item)"></div>
+                          </div>
+                          <div class="progress-info">
+                            <span class="progress-claimed"
+                              >{{ item.reserved_quantity }}/{{
+                                item.quantity
+                              }}
+                              claimed</span
                             >
-                          }
+                            @if (
+                              item.available_quantity !== null &&
+                              item.available_quantity > 0
+                            ) {
+                              <span class="progress-left"
+                                >{{ item.available_quantity }} left</span
+                              >
+                            }
+                          </div>
                         </div>
-                      </div>
+                      } @else {
+                        <div class="progress-wrap">
+                          <div class="progress-info">
+                            <span class="progress-claimed unlimited-label">
+                              <iconify-icon
+                                icon="tabler:infinity"></iconify-icon>
+                              Unlimited
+                            </span>
+                            @if (item.reserved_quantity > 0) {
+                              <span class="progress-left"
+                                >{{ item.reserved_quantity }} claimed</span
+                              >
+                            }
+                          </div>
+                        </div>
+                      }
 
                       <!-- Action -->
                       <div class="item-action">
-                        @if (item.available_quantity > 0) {
+                        @if (
+                          item.available_quantity === null ||
+                          item.available_quantity > 0
+                        ) {
                           @if (guestSession.hasGuest()) {
                             <div class="inline-reserve-row">
-                              @if (item.available_quantity > 1) {
+                              @if (
+                                item.available_quantity === null ||
+                                item.available_quantity > 1
+                              ) {
                                 <select
                                   class="qty-select"
                                   [value]="getReserveQty(item.id)"
@@ -355,7 +390,10 @@ import { GuestSessionService } from "../../core/services/guest-session.service";
                 placeholder="jane@example.com"
                 type="email" />
             </mat-form-field>
-            @if (quickReserveItem()!.available_quantity > 1) {
+            @if (
+              quickReserveItem()!.available_quantity === null ||
+              quickReserveItem()!.available_quantity! > 1
+            ) {
               <div class="qr-qty-row">
                 <span>How many?</span>
                 <select class="qty-select" formControlName="quantity">
@@ -777,6 +815,14 @@ import { GuestSessionService } from "../../core/services/guest-session.service";
       .progress-claimed {
         color: var(--text-secondary);
         font-weight: 500;
+      }
+
+      .unlimited-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--primary);
+        font-weight: 600;
       }
 
       .progress-left {
@@ -1265,19 +1311,20 @@ export class RegistryComponent implements OnInit, OnDestroy {
   });
 
   totalItems = computed(() =>
-    this.items().reduce((sum, i) => sum + i.quantity, 0),
+    this.items().reduce((sum, i) => sum + (i.quantity ?? 0), 0),
   );
   totalReserved = computed(() =>
     this.items().reduce((sum, i) => sum + i.reserved_quantity, 0),
   );
   totalAvailable = computed(() =>
-    this.items().reduce((sum, i) => sum + i.available_quantity, 0),
+    this.items().reduce((sum, i) => sum + (i.available_quantity ?? 0), 0),
   );
 
   private categoryEmojis: Record<string, string> = {
     Kitchen: "tabler:tools-kitchen-2",
     "Living Room": "tabler:armchair",
     Bedroom: "tabler:bed",
+    "Bedroom / Lounge": "tabler:bed",
     Bathroom: "tabler:bath",
     Garden: "tabler:plant",
     Outdoor: "tabler:sun",
@@ -1287,6 +1334,7 @@ export class RegistryComponent implements OnInit, OnDestroy {
     Storage: "tabler:box",
     Dining: "tabler:tools-kitchen",
     Entertainment: "tabler:device-gamepad-2",
+    "Gift Cards": "tabler:gift-card",
   };
 
   constructor(
@@ -1397,7 +1445,7 @@ export class RegistryComponent implements OnInit, OnDestroy {
   }
 
   getProgressValue(item: Item): number {
-    if (item.quantity === 0) return 0;
+    if (item.quantity === null || item.quantity === 0) return 0;
     return (item.reserved_quantity / item.quantity) * 100;
   }
 
@@ -1431,6 +1479,10 @@ export class RegistryComponent implements OnInit, OnDestroy {
   }
 
   getQuantityOptions(item: Item): number[] {
+    if (item.available_quantity === null) {
+      // Unlimited item — offer 1-10
+      return Array.from({ length: 10 }, (_, i) => i + 1);
+    }
     return Array.from({ length: item.available_quantity }, (_, i) => i + 1);
   }
 

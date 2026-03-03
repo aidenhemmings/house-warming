@@ -25,11 +25,11 @@ export interface Item {
   name: string;
   description: string;
   category: string;
-  quantity: number;
+  quantity: number | null;
   icon: string;
   image_url: string;
   reserved_quantity: number;
-  available_quantity: number;
+  available_quantity: number | null;
   created_at: string;
   updated_at: string;
 }

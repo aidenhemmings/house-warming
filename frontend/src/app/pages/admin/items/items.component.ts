@@ -148,10 +148,14 @@ import { SocketService } from "../../../core/services/socket.service";
           @for (item of filteredItems(); track item.id; let i = $index) {
             <div
               class="item-card fade-in"
-              [class.fully-reserved]="item.available_quantity <= 0"
+              [class.fully-reserved]="
+                item.available_quantity !== null && item.available_quantity <= 0
+              "
               [style.animation-delay]="i * 0.04 + 's'">
               <!-- Ribbon -->
-              @if (item.available_quantity <= 0) {
+              @if (
+                item.available_quantity !== null && item.available_quantity <= 0
+              ) {
                 <div class="ribbon"><span>Claimed!</span></div>
               }
 
@@ -193,28 +197,60 @@ import { SocketService } from "../../../core/services/socket.service";
                 }
 
                 <!-- Progress -->
-                <div class="progress-wrap">
-                  <div class="progress-track">
-                    <div
-                      class="progress-fill"
-                      [class.complete]="item.available_quantity <= 0"
-                      [style.width.%]="getProgress(item)"></div>
+                @if (item.quantity !== null) {
+                  <div class="progress-wrap">
+                    <div class="progress-track">
+                      <div
+                        class="progress-fill"
+                        [class.complete]="
+                          item.available_quantity !== null &&
+                          item.available_quantity <= 0
+                        "
+                        [style.width.%]="getProgress(item)"></div>
+                    </div>
+                    <div class="progress-info">
+                      <span class="progress-claimed">
+                        {{ item.reserved_quantity }}/{{ item.quantity }} claimed
+                      </span>
+                      <span
+                        class="progress-left"
+                        [class.zero]="
+                          item.available_quantity !== null &&
+                          item.available_quantity <= 0
+                        ">
+                        {{ item.available_quantity }} left
+                      </span>
+                    </div>
                   </div>
-                  <div class="progress-info">
-                    <span class="progress-claimed">
-                      {{ item.reserved_quantity }}/{{ item.quantity }} claimed
-                    </span>
-                    <span
-                      class="progress-left"
-                      [class.zero]="item.available_quantity <= 0">
-                      {{ item.available_quantity }} left
-                    </span>
+                } @else {
+                  <div class="progress-wrap">
+                    <div class="progress-info">
+                      <span
+                        class="progress-claimed"
+                        style="color: var(--primary); font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                        <iconify-icon icon="tabler:infinity"></iconify-icon>
+                        Unlimited
+                      </span>
+                      @if (item.reserved_quantity > 0) {
+                        <span class="progress-left">
+                          {{ item.reserved_quantity }} claimed
+                        </span>
+                      }
+                    </div>
                   </div>
-                </div>
+                }
 
                 <!-- Status badge -->
                 <div class="item-status-row">
-                  @if (item.available_quantity <= 0) {
+                  @if (item.quantity === null) {
+                    <span class="status-badge available-badge">
+                      <iconify-icon icon="tabler:infinity"></iconify-icon>
+                      Unlimited
+                    </span>
+                  } @else if (
+                    item.available_quantity !== null &&
+                    item.available_quantity <= 0
+                  ) {
                     <span class="status-badge claimed-badge">
                       <iconify-icon icon="tabler:circle-check"></iconify-icon>
                       All Claimed
@@ -1308,13 +1344,13 @@ export class ItemsComponent implements OnInit, OnDestroy {
   });
 
   totalQuantity = computed(() =>
-    this.items().reduce((s, i) => s + i.quantity, 0),
+    this.items().reduce((s, i) => s + (i.quantity ?? 0), 0),
   );
   totalReserved = computed(() =>
     this.items().reduce((s, i) => s + i.reserved_quantity, 0),
   );
   totalAvailable = computed(() =>
-    this.items().reduce((s, i) => s + i.available_quantity, 0),
+    this.items().reduce((s, i) => s + (i.available_quantity ?? 0), 0),
   );
 
   constructor(
@@ -1382,7 +1418,7 @@ export class ItemsComponent implements OnInit, OnDestroy {
   }
 
   getProgress(item: Item): number {
-    if (item.quantity === 0) return 0;
+    if (item.quantity === null || item.quantity === 0) return 0;
     return (item.reserved_quantity / item.quantity) * 100;
   }
 

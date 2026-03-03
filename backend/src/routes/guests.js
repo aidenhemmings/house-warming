@@ -102,7 +102,8 @@ router.delete("/reservations/:id", async (req, res) => {
     const updatedItems = await pool.query(
       `SELECT i.*,
         COALESCE(SUM(r.quantity), 0)::int as reserved_quantity,
-        (i.quantity - COALESCE(SUM(r.quantity), 0))::int as available_quantity
+        CASE WHEN i.quantity IS NULL THEN NULL
+             ELSE (i.quantity - COALESCE(SUM(r.quantity), 0))::int END as available_quantity
        FROM items i
        LEFT JOIN reservations r ON i.id = r.item_id
        WHERE i.session_id = $1
@@ -168,7 +169,7 @@ router.post("/", async (req, res) => {
     // Check availability for all items
     for (const reservation of reservations) {
       const availCheck = await client.query(
-        `SELECT i.quantity - COALESCE(SUM(r.quantity), 0) as available
+        `SELECT i.quantity, i.quantity - COALESCE(SUM(r.quantity), 0) as available
          FROM items i
          LEFT JOIN reservations r ON i.id = r.item_id
          WHERE i.id = $1 AND i.session_id = $2
@@ -183,7 +184,11 @@ router.post("/", async (req, res) => {
         });
       }
 
-      if (availCheck.rows[0].available < (reservation.quantity || 1)) {
+      // Skip availability check for unlimited items (quantity IS NULL)
+      if (
+        availCheck.rows[0].quantity !== null &&
+        availCheck.rows[0].available < (reservation.quantity || 1)
+      ) {
         await client.query("ROLLBACK");
         return res.status(400).json({
           error: `Not enough availability for item ${reservation.item_id}. Available: ${availCheck.rows[0].available}`,
@@ -237,7 +242,8 @@ router.post("/", async (req, res) => {
     const updatedItems = await pool.query(
       `SELECT i.*,
         COALESCE(SUM(r.quantity), 0)::int as reserved_quantity,
-        (i.quantity - COALESCE(SUM(r.quantity), 0))::int as available_quantity
+        CASE WHEN i.quantity IS NULL THEN NULL
+             ELSE (i.quantity - COALESCE(SUM(r.quantity), 0))::int END as available_quantity
        FROM items i
        LEFT JOIN reservations r ON i.id = r.item_id
        WHERE i.session_id = $1
@@ -329,7 +335,8 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     const updatedItems = await pool.query(
       `SELECT i.*,
         COALESCE(SUM(r.quantity), 0)::int as reserved_quantity,
-        (i.quantity - COALESCE(SUM(r.quantity), 0))::int as available_quantity
+        CASE WHEN i.quantity IS NULL THEN NULL
+             ELSE (i.quantity - COALESCE(SUM(r.quantity), 0))::int END as available_quantity
        FROM items i
        LEFT JOIN reservations r ON i.id = r.item_id
        WHERE i.session_id = $1

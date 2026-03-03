@@ -17,7 +17,8 @@ router.get("/", async (req, res) => {
     const result = await pool.query(
       `SELECT i.*,
         COALESCE(SUM(r.quantity), 0)::int as reserved_quantity,
-        (i.quantity - COALESCE(SUM(r.quantity), 0))::int as available_quantity
+        CASE WHEN i.quantity IS NULL THEN NULL
+             ELSE (i.quantity - COALESCE(SUM(r.quantity), 0))::int END as available_quantity
        FROM items i
        LEFT JOIN reservations r ON i.id = r.item_id
        WHERE i.session_id = $1
@@ -39,7 +40,8 @@ router.get("/:id", async (req, res) => {
     const result = await pool.query(
       `SELECT i.*,
         COALESCE(SUM(r.quantity), 0)::int as reserved_quantity,
-        (i.quantity - COALESCE(SUM(r.quantity), 0))::int as available_quantity
+        CASE WHEN i.quantity IS NULL THEN NULL
+             ELSE (i.quantity - COALESCE(SUM(r.quantity), 0))::int END as available_quantity
        FROM items i
        LEFT JOIN reservations r ON i.id = r.item_id
        WHERE i.id = $1
@@ -94,7 +96,7 @@ router.post("/", authMiddleware, async (req, res) => {
 
     const item = result.rows[0];
     item.reserved_quantity = 0;
-    item.available_quantity = item.quantity;
+    item.available_quantity = item.quantity; // null means unlimited
 
     const io = getIO();
     io.to(`session-${session_id}`).emit("item-created", item);
@@ -141,7 +143,8 @@ router.put("/:id", authMiddleware, async (req, res) => {
     const fullItem = await pool.query(
       `SELECT i.*,
         COALESCE(SUM(r.quantity), 0)::int as reserved_quantity,
-        (i.quantity - COALESCE(SUM(r.quantity), 0))::int as available_quantity
+        CASE WHEN i.quantity IS NULL THEN NULL
+             ELSE (i.quantity - COALESCE(SUM(r.quantity), 0))::int END as available_quantity
        FROM items i
        LEFT JOIN reservations r ON i.id = r.item_id
        WHERE i.id = $1

@@ -270,7 +270,10 @@ interface SelectedItem {
                       <div
                         class="gift-card fade-in"
                         [class.selected]="isSelected(item)"
-                        [class.fully-reserved]="item.available_quantity <= 0"
+                        [class.fully-reserved]="
+                          item.available_quantity !== null &&
+                          item.available_quantity <= 0
+                        "
                         [style.animation-delay]="i * 0.06 + 's'"
                         (click)="toggleItem(item)">
                         <!-- Selection check indicator -->
@@ -279,7 +282,10 @@ interface SelectedItem {
                             <div class="check-active">
                               <mat-icon>check</mat-icon>
                             </div>
-                          } @else if (item.available_quantity > 0) {
+                          } @else if (
+                            item.available_quantity === null ||
+                            item.available_quantity > 0
+                          ) {
                             <div class="check-empty"></div>
                           } @else {
                             <div class="check-disabled">
@@ -289,7 +295,10 @@ interface SelectedItem {
                         </div>
 
                         <!-- Claimed ribbon -->
-                        @if (item.available_quantity <= 0) {
+                        @if (
+                          item.available_quantity !== null &&
+                          item.available_quantity <= 0
+                        ) {
                           <div class="ribbon">
                             <span>Claimed!</span>
                           </div>
@@ -317,31 +326,58 @@ interface SelectedItem {
                           }
 
                           <!-- Progress bar -->
-                          <div class="progress-wrap">
-                            <div class="progress-track">
-                              <div
-                                class="progress-fill"
-                                [class.complete]="item.available_quantity <= 0"
-                                [style.width.%]="getProgressValue(item)"></div>
-                            </div>
-                            <div class="progress-info">
-                              <span class="progress-claimed"
-                                >{{ item.reserved_quantity }}/{{
-                                  item.quantity
-                                }}
-                                claimed</span
-                              >
-                              @if (item.available_quantity > 0) {
-                                <span class="progress-left"
-                                  >{{ item.available_quantity }} left</span
+                          @if (item.quantity !== null) {
+                            <div class="progress-wrap">
+                              <div class="progress-track">
+                                <div
+                                  class="progress-fill"
+                                  [class.complete]="
+                                    item.available_quantity !== null &&
+                                    item.available_quantity <= 0
+                                  "
+                                  [style.width.%]="
+                                    getProgressValue(item)
+                                  "></div>
+                              </div>
+                              <div class="progress-info">
+                                <span class="progress-claimed"
+                                  >{{ item.reserved_quantity }}/{{
+                                    item.quantity
+                                  }}
+                                  claimed</span
                                 >
-                              }
+                                @if (
+                                  item.available_quantity !== null &&
+                                  item.available_quantity > 0
+                                ) {
+                                  <span class="progress-left"
+                                    >{{ item.available_quantity }} left</span
+                                  >
+                                }
+                              </div>
                             </div>
-                          </div>
+                          } @else {
+                            <div class="progress-wrap">
+                              <div class="progress-info">
+                                <span class="progress-claimed unlimited-label">
+                                  <iconify-icon
+                                    icon="tabler:infinity"></iconify-icon>
+                                  Unlimited
+                                </span>
+                                @if (item.reserved_quantity > 0) {
+                                  <span class="progress-left"
+                                    >{{ item.reserved_quantity }} claimed</span
+                                  >
+                                }
+                              </div>
+                            </div>
+                          }
 
                           <!-- Quantity selector (when selected & multiple available) -->
                           @if (
-                            isSelected(item) && item.available_quantity > 1
+                            isSelected(item) &&
+                            (item.available_quantity === null ||
+                              item.available_quantity > 1)
                           ) {
                             <div
                               class="qty-row"
@@ -1357,6 +1393,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     Kitchen: "tabler:tools-kitchen-2",
     "Living Room": "tabler:armchair",
     Bedroom: "tabler:bed",
+    "Bedroom / Lounge": "tabler:bed",
     Bathroom: "tabler:bath",
     Garden: "tabler:plant",
     Outdoor: "tabler:sun",
@@ -1366,6 +1403,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     Storage: "tabler:box",
     Dining: "tabler:tools-kitchen",
     Entertainment: "tabler:device-gamepad-2",
+    "Gift Cards": "tabler:gift-card",
   };
 
   categories = computed(() => {
@@ -1431,7 +1469,10 @@ export class RegisterComponent implements OnInit, OnDestroy {
         const preSelectId = this.route.snapshot.queryParamMap.get("item");
         if (preSelectId) {
           const item = items.find((i) => i.id === Number(preSelectId));
-          if (item && item.available_quantity > 0) {
+          if (
+            item &&
+            (item.available_quantity === null || item.available_quantity > 0)
+          ) {
             this.selectedItems.set([{ item, quantity: 1 }]);
           }
         }
@@ -1455,7 +1496,11 @@ export class RegisterComponent implements OnInit, OnDestroy {
           this.selectedItems.update((selected) =>
             selected.filter((s) => {
               const updated = items.find((i) => i.id === s.item.id);
-              return updated && updated.available_quantity > 0;
+              return (
+                updated &&
+                (updated.available_quantity === null ||
+                  updated.available_quantity > 0)
+              );
             }),
           );
         }
@@ -1473,7 +1518,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   getProgressValue(item: Item): number {
-    if (item.quantity === 0) return 0;
+    if (item.quantity === null || item.quantity === 0) return 0;
     return (item.reserved_quantity / item.quantity) * 100;
   }
 
@@ -1496,11 +1541,16 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   getQuantityOptions(item: Item): number[] {
+    if (item.available_quantity === null) {
+      // Unlimited item — offer 1-10
+      return Array.from({ length: 10 }, (_, i) => i + 1);
+    }
     return Array.from({ length: item.available_quantity }, (_, i) => i + 1);
   }
 
   toggleItem(item: Item): void {
-    if (item.available_quantity <= 0) return;
+    if (item.available_quantity !== null && item.available_quantity <= 0)
+      return;
 
     if (this.isSelected(item)) {
       this.selectedItems.update((items) =>
