@@ -54,54 +54,77 @@ async function seed() {
     const s1Id = session1.rows[0].id;
     const s2Id = session2.rows[0].id;
 
-    // Sample items for session 1
-    const items1 = [
-      ["Wine Glasses Set", "Set of 6 crystal wine glasses", "Kitchen", 2, s1Id],
+    // Registry items per category
+    const registryItems = [
+      // Kitchen
+      ["Cutting Boards", "Cutting boards for kitchen prep", "Kitchen", 3],
+      ["Knives Set", "Kitchen knives set", "Kitchen", 3],
+      ["Glasses", "Packs of drinking glasses", "Kitchen", 2],
+      ["Cups", "Packs of cups", "Kitchen", 2],
+      ["Cutlery", "Packs of cutlery (forks, knives, spoons)", "Kitchen", 2],
       [
-        "Dinner Plates",
-        "White ceramic dinner plates (set of 4)",
+        "Cutlery Organizer",
+        "Organizer for kitchen cutlery drawer",
         "Kitchen",
-        3,
-        s1Id,
+        2,
       ],
-      ["Bath Towel Set", "Luxury cotton bath towels", "Bathroom", 4, s1Id],
       [
-        "Throw Pillows",
-        "Decorative throw pillows for the living room",
-        "Living Room",
-        6,
-        s1Id,
+        "Kitchen Utensils",
+        "Kitchen utensils pack (spatula, etc.)",
+        "Kitchen",
+        2,
       ],
-      ["Scented Candles", "Assorted premium scented candles", "Decor", 5, s1Id],
-      ["Cutting Board Set", "Bamboo cutting board set", "Kitchen", 2, s1Id],
-      ["Door Mat", "Welcome door mat", "Entrance", 1, s1Id],
-      ["Indoor Plant", "Low-maintenance indoor plants", "Decor", 4, s1Id],
-      ["Picture Frames", "Modern picture frame set", "Decor", 3, s1Id],
-      ["Coffee Maker", "Drip coffee maker", "Kitchen", 1, s1Id],
-    ];
+      [
+        "Baking Equipment",
+        "Baking equipment (measuring cups, etc.)",
+        "Kitchen",
+        2,
+      ],
+      ["Tupperware", "Food storage container set", "Kitchen", 1],
+      ["Pots", "Cooking pots", "Kitchen", 1],
+      ["Pans", "Cooking pans", "Kitchen", 1],
+      ["Toaster", "Toaster", "Kitchen", 1],
 
-    // Sample items for session 2
-    const items2 = [
+      // Bathroom
+      ["Towels", "Bath towels", "Bathroom", 1],
+      ["Shower Caddy", "Shower caddy for storage", "Bathroom", 2],
+      ["Shower Curtain", "Shower curtain", "Bathroom", 2],
+      ["Bath Mats", "Bath mats", "Bathroom", 2],
       [
-        "Cookware Set",
-        "Non-stick cookware set (10 pieces)",
-        "Kitchen",
+        "Bathroom Utensils",
+        "Bathroom accessories (toothbrush holder, etc.)",
+        "Bathroom",
+        2,
+      ],
+      ["Iron", "Clothes iron", "Bathroom", 1],
+      ["Ironing Board", "Ironing board", "Bathroom", 1],
+      ["Clothing Baskets", "Laundry / clothing baskets", "Bathroom", 2],
+
+      // Bedroom / Lounge
+      ["Lamps", "Lamps for bedroom or lounge", "Bedroom / Lounge", 3],
+      ["Blankets", "Cozy blankets", "Bedroom / Lounge", 3],
+      ["Bedding Set (Queen)", "Queen size bedding set", "Bedroom / Lounge", 3],
+      ["Picture Frames", "Picture frames", "Bedroom / Lounge", 1],
+      ["Carpets", "Carpets (bedroom, lounge, etc.)", "Bedroom / Lounge", 1],
+
+      // Gift Cards
+      [
+        "Cash or Gift Card",
+        "Cash or gift cards — PEP Home or Mr Price Home would be greatly appreciated",
+        "Gift Cards",
         1,
-        s2Id,
       ],
-      ["Bedding Set", "Queen size bedding set", "Bedroom", 2, s2Id],
-      ["Vacuum Cleaner", "Cordless stick vacuum", "Cleaning", 1, s2Id],
-      ["Spice Rack", "Revolving spice rack with spices", "Kitchen", 1, s2Id],
-      ["Wall Clock", "Modern minimalist wall clock", "Decor", 2, s2Id],
-      ["Laundry Basket", "Woven laundry basket", "Bathroom", 2, s2Id],
     ];
 
-    for (const item of [...items1, ...items2]) {
-      await pool.query(
-        `INSERT INTO items (name, description, category, quantity, session_id)
-         VALUES ($1, $2, $3, $4, $5)`,
-        item,
-      );
+    // Seed both sessions with the same registry items
+    for (const sessionId of [s1Id, s2Id]) {
+      for (const [name, description, category, quantity] of registryItems) {
+        await pool.query(
+          `INSERT INTO items (name, description, category, quantity, session_id)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [name, description, category, quantity, sessionId],
+        );
+      }
     }
 
     console.log("Sample data seeded successfully");
